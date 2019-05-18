@@ -1,26 +1,70 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, {Component} from 'react';
+import { BrowserRouter as Router,Route} from 'react-router-dom';
 import './App.css';
+import Header from './Components/layout/Header';
+import Todo from './Components/Todo';
+import AddTodo from './Components/AddTodo';
+import About from './Components/pages/About';
+import uuid from 'uuid';
+import Axios from 'axios';
 
-function App() {
+class App extends Component{
+  state={
+    todos:[]
+  }
+  componentDidMount()
+  {
+    Axios.get('https://jsonplaceholder.typicode.com/todos?_limit=10')
+    .then(res => this.setState({ todos: res.data}))
+
+  }
+  markComplete = (id) => {
+    this.setState({
+      todos:this.state.todos.map(todo=>{
+        if(todo.id===id)
+        {
+          todo.completed = !todo.completed
+        }
+        return todo;
+      })
+    });
+  }
+
+  delTodo = (id) => {
+    this.setState({todos:[...this.state.todos.filter(todo=>todo.id !==id)]});
+  }
+
+  addTodo = (title) => {
+    const newTodo = {
+      id:uuid.v4(),
+      title,
+      completed: false
+    }
+    this.setState({todos: [...this.state.todos,newTodo]});
+  }
+  render(){
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+    <Router>
+      <div className="container">
+        <div className="App">
+          <Header />
+          <Route exact path="/" render={props=>(
+          <React.Fragment>
+            <AddTodo addTodo={this.addTodo} />
+          <Todo todos={this.state.todos} markComplete={this.markComplete} delTodo={this.delTodo}/>
+          </React.Fragment>
+          
+          )}/> 
 
+          <Route path="/about" component={About}/>  
+           
+        </div>
+      </div>
+    </Router>
+    
+    
+  );
+
+  }
+}
 export default App;
